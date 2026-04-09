@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio Premium | JD</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Syne:wght@400;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <!-- Vista de Usuario (Web Principal) -->
+    <div id="user-app">
+        <div class="video-background">
+            <div class="video-overlay"></div>
+            <img src="professional_bg.png" alt="Background" class="bg-image">
+        </div>
+
+        <div class="content-wrapper">
+            <header class="animate hidden-fade">
+                <div class="logo neon-text-subtle">JD.<span id="admin-trigger"
+                        style="opacity: 0.1; cursor: pointer; font-size: 0.5rem; vertical-align: middle; margin-left: 5px;">•</span>
+                </div>
+                <nav>
+                    <a href="#inicio">Inicio</a>
+                    <a href="#proyectos">Portafolio</a>
+                    <a href="#contacto">Contacto</a>
+                </nav>
+            </header>
+
+            <section id="inicio" class="hero">
+                <div class="hero-content animate hidden-bottom">
+                    <div class="hero-label-wrapper"><span class="hero-label">Graphic Designer</span></div>
+                    <h1 class="main-title">
+                        <span class="title-top">CREANDO</span>
+                        <span class="title-bottom">ARTE <span class="outline-text">VISUAL</span></span>
+                    </h1>
+                    <p class="hero-description">Transformando conceptos en experiencias visuales de alto impacto.</p>
+                    <div class="hero-actions">
+                        <a href="#proyectos" class="btn-premium">Explorar Trabajos</a>
+                        <a href="#contacto" class="btn-link">Contactar</a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="proyectos" class="portfolio-section">
+                <h2 class="section-title animate hidden-bottom">MI CATÁLOGO</h2>
+                <div id="portfolio-filter" class="filter-tabs animate hidden-bottom">
+                    <!-- Categorías dinámicas -->
+                </div>
+                <div id="portfolio-container" class="portfolio-grid">
+                    <div class="loading-state">Cargando proyectos...</div>
+                </div>
+            </section>
+
+            <section id="contacto" class="contact-section">
+                <div class="contact-box animate hidden-bottom">
+                    <h2 class="neon-text-subtle">¿Trabajamos juntos?</h2>
+                    <p>Contáctame para dar vida a tus proyectos más ambiciosos.</p>
+                    <a href="mailto:hola@ejemplo.com" class="btn-neon-outline">Enviar Mensaje</a>
+                </div>
+            </section>
+
+            <footer>
+                <p>&copy; Diseñador Gráfico.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Vista de Admin (Panel Completo) -->
+    <div id="admin-app" style="display: none;">
+        <div class="admin-sidebar">
+            <div class="admin-logo">JD. <span>Admin</span></div>
+            <nav class="admin-nav">
+                <button onclick="switchAdminTab('dash')" class="admin-nav-item active">Dashboard</button>
+                <button onclick="switchAdminTab('proy')" class="admin-nav-item">Proyectos</button>
+                <button onclick="switchAdminTab('cat')" class="admin-nav-item">Categorías</button>
+                <button onclick="switchAdminTab('logs')" class="admin-nav-item">Accesos (Fotos)</button>
+            </nav>
+            <button onclick="logoutAdmin()" class="admin-logout">Cerrar Sesión</button>
+            <button onclick="exitAdmin()" class="admin-exit">Volver a la Web</button>
+        </div>
+
+        <main class="admin-main">
+            <!-- Login Inicial -->
+            <div id="admin-auth" class="admin-content-section" style="display: block;">
+                <div class="admin-card login-card">
+                    <h2>Acceso Panel</h2>
+                    <p style="color: #666; margin-bottom: 2rem;">Ingresa tus credenciales maestras</p>
+                    <div class="admin-input-group">
+                        <input type="email" id="adm-email" placeholder="Correo Electrónico">
+                        <input type="password" id="adm-pass" placeholder="Contraseña">
+                        <button onclick="loginAdmin()" class="btn-premium">Entrar al Sistema</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="tab-dash" class="admin-content-section">
+                <h1 class="admin-page-title">Bienvenido, Designer</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Proyectos</h3>
+                        <p id="stat-proy">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Categorías</h3>
+                        <p id="stat-cat">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proyectos View -->
+            <div id="tab-proy" class="admin-content-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1>Gestión de Proyectos</h1>
+                    <button onclick="showProjectForm()" class="btn-premium">+ Nuevo Proyecto</button>
+                </div>
+                <div class="admin-card">
+                    <div id="admin-projects-table">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- Categorías View -->
+            <div id="tab-cat" class="admin-content-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1>Gestión de Categorías</h1>
+                    <button onclick="showCategoryForm()" class="btn-premium">+ Nueva Categoría</button>
+                </div>
+                <div class="admin-card">
+                    <div id="admin-categories-list">Cargando...</div>
+                </div>
+            </div>
+            <!-- Accesos (Fotos) View -->
+            <div id="tab-logs" class="admin-content-section">
+                <h1>Registros de Acceso</h1>
+                <p style="color: #666; margin-bottom: 2rem;">Capturas automáticas de intentos de entrada.</p>
+                <div class="admin-card">
+                    <div id="access-logs-grid" class="logs-grid">
+                        <!-- Fotos aquí -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modales de Edición -->
+        <div id="admin-generic-modal" class="modal">
+            <div class="modal-content admin-modal-box">
+                <span class="close-admin" onclick="closeAdminModal()">&times;</span>
+                <div id="admin-modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals de Usuario -->
+    <div id="image-modal" class="modal">
+        <div class="modal-content"><span class="close-btn">&times;</span>
+            <h3 id="modal-title">Galería</h3>
+            <div class="modal-gallery"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
