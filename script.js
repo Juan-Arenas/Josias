@@ -20,7 +20,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     initSecretTrigger();
     checkSession();
     loadEverything();
+    initRealtime(); // Activar tiempo real
 });
+
+/**
+ * Tiempo real con Supabase
+ */
+function initRealtime() {
+    if (!sb) return;
+    sb.channel('db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categorias' }, loadEverything)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'proyectos' }, loadEverything)
+      .subscribe();
+}
 
 /**
  * --- LÓGICA DE USUARIO (WEB PRINCIPAL) ---
@@ -73,20 +85,18 @@ function renderMainCatalog() {
 
     allCategories.forEach(cat => {
         const card = document.createElement("div");
-        card.className = `portfolio-card animate hidden-bottom`;
-        // Usamos una imagen por defecto para la categoría o la que tenga asignada si decides añadir campo de imagen a categorias
+        card.className = `portfolio-card show`; // Usamos 'show' directo para que aparezca sin delay
         const catThumb = cat.image || "professional_bg.png"; 
         
         card.innerHTML = `
             <div class="card-image"><img src="${catThumb}" alt="${cat.name}"></div>
             <div class="card-content">
                 <h3>${cat.name}</h3>
-                <p>Ver galería de trabajos</p>
-                <a href="#" class="view-more" onclick="openGallery('${cat.name}')">Abrir Galería</a>
+                <p>Explorar Galería</p>
+                <button class="view-more" onclick="openGallery('${cat.name}')" style="cursor:pointer; background:none; border:none; color:var(--primary-red); font-weight:800; font-family:'Syne';">ABRIR</button>
             </div>
         `;
         container.appendChild(card);
-        window.mainObserver.observe(card);
     });
 }
 
@@ -237,7 +247,12 @@ function showProjectForm() {
 
 async function saveProject() {
     const p = { title: document.getElementById('p-title').value, image: document.getElementById('p-img').value, categoria: document.getElementById('p-cat').value };
-    await sb.from('proyectos').insert([p]);
+    const { error } = await sb.from('proyectos').insert([p]);
+    if (error) {
+        alert("Error al guardar proyecto: " + error.message);
+        console.error(error);
+        return;
+    }
     closeAdminModal(); await fetchProjects(); renderAdminProjects();
 }
 
@@ -260,12 +275,36 @@ function showCategoryForm() {
 }
 
 async function saveCategory() {
-    const c = { name: document.getElementById('c-name').value, image: document.getElementById('c-img').value };
-    await sb.from('categorias').insert([c]);
-    closeAdminModal(); await fetchCategories(); renderAdminCategories();
+    const name = document.getElementById('c-name').value.trim();
+    const imageVal = document.getElementById('c-img').value.trim();
+    const categoryData = imageVal ? { name, image: imageVal } : { name };
+    const { error } = await sb.from('categorias').insert([categoryData]);
+    if (error) {
+        alert('Error al guardar categoría: ' + error.message + '\nAsegúrate de que la tabla "categorias" tenga la columna "image" si deseas usarla.');
+        console.error(error);
+        return;
+    }
+    closeAdminModal();
+    await fetchCategories();
+    renderAdminCategories();
+    // Refresh the main catalog instantly
+    renderMainCatalog();
 }
 
-async function deleteCategory(id) { if (confirm("¿Borrar categoría completa?")) { await sb.from('categorias').delete().eq('id', id); await fetchCategories(); renderAdminCategories(); } }
+async function deleteCategory(id) {
+    if (confirm("¿Borrar categoría completa?")) {
+        const { error } = await sb.from('categorias').delete().eq('id', id);
+        if (error) {
+            alert('Error al borrar categoría: ' + error.message);
+            console.error(error);
+            return;
+        }
+        await fetchCategories();
+        renderAdminCategories();
+        renderMainCatalog();
+        alert('🗑️ Categoría eliminada exitosamente.');
+    }
+}
 
 async function renderAccessLogs() {
     const pass = prompt("Clave Maestra:");
